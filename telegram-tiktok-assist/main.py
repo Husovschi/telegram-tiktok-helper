@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import time
 import re
+import requests
+import logging
+import json
 
 from telethon import TelegramClient, events
-from tiktok_downloader import TiktokDownloader
-
-import logging
 
 logging.basicConfig(level=logging.WARNING)
 
+headers = {
+    'user-agent': 'PostmanRuntime/7.29.2',
+    'Connection': 'keep-alive'
+}
 
 def get_env(name, message, cast=str):
     if name in os.environ:
@@ -24,6 +26,19 @@ def get_env(name, message, cast=str):
             print(e, file=sys.stderr)
             time.sleep(1)
 
+def get_id(url=str) -> str:
+    r = requests.get(url, headers=headers)
+    return re.findall(r'\d{19}', r.url)[0]
+
+def download_video(id=str):
+    api_url = f'https://api19-core-useast5.us.tiktokv.com/aweme/v1/feed/?aweme_id={id}&version_code=262&app_name=musical_ly&channel=App&device_id=null&os_version=14.4.2&device_platform=iphone&device_type=iPhone9'
+    r = requests.get(api_url).content.decode('utf8')
+
+    video_url = json.loads(r)['aweme_list'][0]['video']['play_addr']['url_list'][1]
+    r = requests.get(video_url)
+
+    with open(f'{id}.mp4', 'wb') as f:
+        f.write(r.content)
 
 @events.register(events.NewMessage)
 async def handler(event):
@@ -36,9 +51,11 @@ async def handler(event):
             print('url', url)
             chat = event.chat
             await client.delete_messages(event.chat_id, event.id)
-            TiktokDownloader().download_video(url.string)
-            await client.send_file(chat, 'out.mp4', video_note=True)
-            os.remove('out.mp4')
+            id = get_id(url.string)
+            print(id)
+            download_video(id)
+            await client.send_file(chat, f'{id}.mp4', video_note=True)
+            os.remove(f'{id}.mp4')
 
 
 client = TelegramClient(
