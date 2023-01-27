@@ -54,22 +54,19 @@ def get_long_video_id(url) -> str:
         return re.findall(r'\d{19}', r.url)[0]
 
 
-def download_video(video_id) -> None:
-    """Download video from TikTok based on its video ID.
+def get_video_url(video_id) -> str:
+    """Gets video URL TikTok based on its video ID.
 
-    Download video from TikTok and save it locally.
+    Returns video URL TikTok.
 
-    :param video_id: long video id
+    :param video_id: long video id.
+    :return: Video URL.
     """
-    logging.info(f'Downloading video')
+    logging.info(f'Getting video URL')
     api_url = f'https://api16-core.tiktokv.com/aweme/v1/feed/?aweme_id={video_id}&version_code=262&app_name=musical_ly&channel=App&device_id=null&os_version=14.4.2&device_platform=iphone&device_type=iPhone9'
     r = requests.get(api_url).content.decode('utf8')
 
-    video_url = json.loads(r)['aweme_list'][0]['video']['play_addr']['url_list'][1]
-    r = requests.get(video_url)
-
-    with open(f'{id}.mp4', 'wb') as f:
-        f.write(r.content)
+    return json.loads(r)['aweme_list'][0]['video']['play_addr']['url_list'][1]
 
 
 @events.register(events.NewMessage)
@@ -86,15 +83,17 @@ async def handler(event):
             await client.delete_messages(event.chat_id, event.id)
             video_id = get_long_video_id(url.string)
             logging.info(f'TikTok video ID: {video_id}')
-            download_video(video_id)
+            video_url = get_video_url(video_id)
             logging.info('Sending video to telegram')
-            await client.send_file(
-                event.chat,
-                f'{video_id}.mp4',
-                video_note=True,
-                attributes=(DocumentAttributeVideo(0, 0, 0),)
-            )
-            os.remove(f'{video_id}.mp4')
+            async with client.action(event.chat, 'document') as action:
+                await client.send_file(
+                    event.chat,
+                    video_url,
+                    video_note=True,
+                    attributes=(DocumentAttributeVideo(0, 0, 0),),
+                    progress_callback=action.progress,
+                    allow_cache=False
+                )
 
 
 client = TelegramClient(
