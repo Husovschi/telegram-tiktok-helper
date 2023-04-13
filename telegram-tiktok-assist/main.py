@@ -16,29 +16,6 @@ headers = {
 }
 
 
-def get_value(value_name, message, cast):
-    """Retrieves a value from environment vars or manual input.
-
-    If the value can be found in the environment vars with the same name the value will be returned.
-    Else the user will be prompted for a manual input.
-    The values will be cast to the cast value.
-
-    :param value_name: Name of the value that will be searched and returned.
-    :param message: Message for the user prompt. Will only show if the value is not found in the environment.
-    :param cast: Return value type
-    :return: Value
-    """
-    if value_name in os.environ:
-        return os.environ[value_name]
-    while True:
-        value_name = input(message)
-        try:
-            return cast(value_name)
-        except ValueError as e:
-            print(e, file=sys.stderr)
-            time.sleep(1)
-
-
 def get_long_video_id(url) -> str:
     """Retrieves the video ID from a TikTok URL.
 
@@ -98,8 +75,8 @@ async def handler(event):
 
 client = TelegramClient(
     os.environ.get('TG_SESSION', 'replier'),
-    get_value('TG_API_ID', 'Enter your API ID: ', cast=int),
-    get_value('TG_API_HASH', 'Enter your API hash: ', cast=str)
+    os.environ.get('TG_API_ID'),
+    os.environ.get('TG_API_HASH')
 )
 
 with client:
