@@ -57,7 +57,6 @@ async def handler(event):
             event.raw_text)
         if url:
             logging.info(f'TikTok link found: {url.string}')
-            await client.delete_messages(event.chat_id, event.id)
             video_id = get_long_video_id(url.string)
             logging.info(f'TikTok video ID: {video_id}')
             video_url = get_video_url(video_id)
@@ -71,6 +70,7 @@ async def handler(event):
                     progress_callback=action.progress,
                     allow_cache=False
                 )
+            await client.delete_messages(event.chat_id, event.id)
 
 
 client = TelegramClient(
