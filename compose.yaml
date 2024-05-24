@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  telegram-bot:
+    build:
+      context: .
+    volumes:
+      - ./app:/usr/src/app
+      - ./downloads:/usr/src/app/downloads
+      - ./replier.session:/usr/src/app/replier.session
+    environment:
+      - TG_API_ID=${TG_API_ID}
+      - TG_API_HASH=${TG_API_HASH}
+    restart: always

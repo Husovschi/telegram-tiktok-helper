@@ -1,12 +1,11 @@
-FROM python:3.11-alpine
-
-WORKDIR /telegram-tiktok-assist
+FROM python:3.11-slim
 
 COPY requirements.txt .
-
-RUN pip install -r requirements.txt \
+RUN pip install --no-cache-dir -r requirements.txt \
  && rm requirements.txt
 
-COPY telegram-tiktok-assist .
+WORKDIR /usr/src/app
 
-CMD [ "sh", "-c", "python main.py" ]
+COPY ./app /usr/src/app
+
+CMD ["python", "main.py"]

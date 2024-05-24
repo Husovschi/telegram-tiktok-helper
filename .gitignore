@@ -1,5 +1,8 @@
 venv
 geckodriver.log
-replier.session
+replier.session*
 .idea
 __pycache__
+.env
+downloads
+.DS_STORE
