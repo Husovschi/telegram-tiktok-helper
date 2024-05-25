@@ -12,7 +12,7 @@ client = TelegramClient(
 )
 
 
-@client.on(events.NewMessage(pattern=r'https?://(www\.)?tiktok\.com/\S+'))
+@client.on(events.NewMessage(pattern=r'https?://([\w-]+\.)?tiktok\.com/\S+'))
 async def handler(event):
     # Extract URL and download video
     url = event.message.text
